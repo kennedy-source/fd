@@ -10,7 +10,50 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Operational overview
+  - name: branches
+    description: Store branches
+  - name: products
+    description: Product catalog
+  - name: inventory
+    description: Inventory by branch
+  - name: customers
+    description: Retail, wholesale, and school customers
+  - name: orders
+    description: Retail and institutional orders
+  - name: payments
+    description: Customer payments
+  - name: activity
+    description: Recent operational activity
 paths:
+  /health:
+    get:
+      operationId: health
+      tags: [health]
+      summary: API liveness check
+      responses:
+        "200":
+          description: API process is running
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+  /readyz:
+    get:
+      operationId: readinessCheck
+      tags: [health]
+      summary: API and database readiness check
+      responses:
+        "200":
+          description: API and database are ready
+        "503":
+          description: Database is unavailable
   /healthz:
     get:
       operationId: healthCheck
@@ -24,6 +67,281 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard overview
+      responses:
+        "200":
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /branches:
+    get:
+      operationId: listBranches
+      tags: [branches]
+      summary: List branches
+      responses:
+        "200":
+          description: Branch list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Branch"
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: shopId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+  /products/{productId}:
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product and its inventory
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmation]
+              properties:
+                confirmation: { type: string }
+      responses:
+        "200":
+          description: Product deleted
+  /inventory:
+    get:
+      operationId: listInventory
+      tags: [inventory]
+      summary: List inventory
+      parameters:
+        - name: branchId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: shopId
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: lowStock
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Inventory list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItem"
+    delete:
+      operationId: clearInventory
+      tags: [inventory]
+      summary: Clear inventory for a shop
+      parameters:
+        - name: shopId
+          in: query
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmation]
+              properties:
+                confirmation: { type: string }
+      responses:
+        "200":
+          description: Inventory cleared
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: shopId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List payment receipts
+      responses:
+        "200":
+          description: Payment receipt list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Record a payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "201":
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+  /activity:
+    get:
+      operationId: listActivity
+      tags: [activity]
+      summary: List recent activity
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Activity"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +351,250 @@ components:
           type: string
       required:
         - status
+    Branch:
+      type: object
+      required: [id, code, name, location, manager, phone, inventoryValue]
+      properties:
+        id: { type: string }
+        code: { type: string }
+        name: { type: string }
+        location: { type: string }
+        manager: { type: string }
+        phone: { type: string }
+        inventoryValue: { type: number }
+        salesToday: { type: number }
+    Product:
+      type: object
+      required: [id, sku, name, category, unit, costPrice, retailPrice, wholesalePrice, status]
+      properties:
+        shopId: { type: string }
+        id: { type: string }
+        sku: { type: string }
+        name: { type: string }
+        category: { type: string }
+        garmentType: { type: string }
+        pattern: { type: string }
+        checkColors:
+          type: array
+          items: { type: string }
+        collarStyle: { type: string }
+        sleeveStyle: { type: string }
+        unit: { type: string }
+        sizes:
+          type: array
+          items: { type: string }
+        colors:
+          type: array
+          items: { type: string }
+        school: { type: string }
+        schoolLogo: { type: string }
+        badgeName: { type: string }
+        badgeSchool: { type: string }
+        badgeStock: { type: integer }
+        badgePrice: { type: number }
+        costPrice: { type: number }
+        retailPrice: { type: number }
+        wholesalePrice: { type: number }
+        status: { type: string }
+        createdByUserId: { type: string }
+        branchStock:
+          type: array
+          items:
+            type: object
+            required: [branchId, branchName, onHand, reserved, available]
+            properties:
+              branchId: { type: string }
+              branchName: { type: string }
+              onHand: { type: integer }
+              reserved: { type: integer }
+              available: { type: integer }
+    ProductInput:
+      type: object
+      required: [shopId, name, category, unit, costPrice, retailPrice, wholesalePrice]
+      properties:
+        shopId: { type: string, minLength: 1 }
+        sku: { type: string, minLength: 1 }
+        name: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        garmentType: { type: string }
+        pattern: { type: string }
+        checkColors:
+          type: array
+          items: { type: string }
+        collarStyle: { type: string }
+        sleeveStyle: { type: string }
+        unit: { type: string, minLength: 1 }
+        sizes:
+          type: array
+          items: { type: string }
+        colors:
+          type: array
+          items: { type: string }
+        school: { type: string }
+        schoolLogo: { type: string }
+        badgeName: { type: string }
+        badgeSchool: { type: string }
+        badgeStock: { type: integer, minimum: 0 }
+        badgePrice: { type: number, minimum: 0 }
+        initialStock: { type: integer, minimum: 0 }
+        costPrice: { type: number, minimum: 0 }
+        retailPrice: { type: number, minimum: 0 }
+        wholesalePrice: { type: number, minimum: 0 }
+    InventoryItem:
+      type: object
+      required: [id, productId, productName, sku, branchId, branchName, onHand, reserved, available, reorderPoint, value]
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        productName: { type: string }
+        sku: { type: string }
+        branchId: { type: string }
+        branchName: { type: string }
+        onHand: { type: number }
+        reserved: { type: number }
+        available: { type: number }
+        reorderPoint: { type: number }
+        value: { type: number }
+    Customer:
+      type: object
+      required: [id, name, type, phone, balance, creditLimit, status]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        type: { type: string }
+        phone: { type: string }
+        email: { type: ["string", "null"] }
+        school: { type: ["string", "null"] }
+        uniformProductIds:
+          type: array
+          items: { type: string }
+        balance: { type: number }
+        creditLimit: { type: number }
+        status: { type: string }
+    CustomerInput:
+      type: object
+      required: [name, type, phone]
+      properties:
+        shopId: { type: string }
+        name: { type: string, minLength: 1 }
+        type: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        email: { type: string }
+        school: { type: string }
+        uniformProductIds:
+          type: array
+          items: { type: string }
+        creditLimit: { type: number, minimum: 0 }
+    Order:
+      type: object
+      required: [id, orderNumber, customerName, customerType, type, status, total, paid, balance, dueDate, createdAt, branchName]
+      properties:
+        shopId: { type: string }
+        id: { type: string }
+        orderNumber: { type: string }
+        customerName: { type: string }
+        customerType: { type: string }
+        type: { type: string }
+        status: { type: string }
+        total: { type: number }
+        paid: { type: number }
+        balance: { type: number }
+        dueDate: { type: string }
+        createdAt: { type: string }
+        branchName: { type: string }
+        itemSummary: { type: string }
+        embroidery: { type: boolean }
+        createdByUserId: { type: string }
+        paymentReceiptNumber: { type: string }
+    OrderInput:
+      type: object
+      required: [shopId, customerName, customerType, type, total, deposit, dueDate, branchId]
+      properties:
+        shopId: { type: string, minLength: 1 }
+        customerName: { type: string, minLength: 1 }
+        customerType: { type: string, minLength: 1 }
+        type: { type: string, minLength: 1 }
+        total: { type: number, minimum: 0 }
+        deposit: { type: number, minimum: 0 }
+        dueDate: { type: string, minLength: 1 }
+        branchId: { type: string, minLength: 1 }
+        items:
+          type: array
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId: { type: string, minLength: 1 }
+              size: { type: string }
+              quantity: { type: integer, minimum: 1 }
+        itemSummary: { type: string }
+        embroidery: { type: boolean }
+        status: { type: string }
+        paymentMethod: { type: string }
+        paymentReference: { type: string }
+        idempotencyKey: { type: string }
+    Payment:
+      type: object
+      required: [id, receiptNumber, customerName, amount, method, receivedAt]
+      properties:
+        shopId: { type: string }
+        id: { type: string }
+        receiptNumber: { type: string }
+        customerName: { type: string }
+        amount: { type: number }
+        method: { type: string }
+        receivedAt: { type: string }
+        orderNumber: { type: ["string", "null"] }
+    PaymentInput:
+      type: object
+      required: [shopId, customerName, amount, method]
+      properties:
+        shopId: { type: string, minLength: 1 }
+        customerName: { type: string, minLength: 1 }
+        amount: { type: number, minimum: 1 }
+        method: { type: string, minLength: 1 }
+        orderNumber: { type: string }
+    Activity:
+      type: object
+      required: [id, type, title, description, time, actor]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        description: { type: string }
+        time: { type: string }
+        actor: { type: string }
+    Dashboard:
+      type: object
+      required: [salesToday, salesChange, retailSales, wholesaleSales, outstandingCredit, overdueAccounts, pendingOrders, pendingEmbroidery, lowStock, reservedStock, topProducts, branchPerformance]
+      properties:
+        salesToday: { type: number }
+        salesChange: { type: number }
+        retailSales: { type: number }
+        wholesaleSales: { type: number }
+        outstandingCredit: { type: number }
+        overdueAccounts: { type: number }
+        pendingOrders: { type: number }
+        pendingEmbroidery: { type: number }
+        lowStock: { type: number }
+        reservedStock: { type: number }
+        topProducts:
+          type: array
+          items:
+            type: object
+            required: [name, units, revenue]
+            properties:
+              name: { type: string }
+              units: { type: number }
+              revenue: { type: number }
+        branchPerformance:
+          type: array
+          items:
+            type: object
+            required: [branch, sales, target, percentage]
+            properties:
+              branch: { type: string }
+              sales: { type: number }
+              target: { type: number }
+              percentage: { type: number }
 

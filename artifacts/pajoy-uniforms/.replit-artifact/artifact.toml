@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Pajoy Uniforms Operations"
+description = "A professional operations console for Pajoy Uniforms to manage multi-branch inventory, retail and wholesale sales, school orders, embroidery production, customers, payments, and business reporting."
+version = "1.0.0"
+id = "artifacts/pajoy-uniforms"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19614
+
+[services.development]
+run = "pnpm --filter @workspace/pajoy-uniforms run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pajoy-uniforms", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/pajoy-uniforms/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19614"
+BASE_PATH = "/"

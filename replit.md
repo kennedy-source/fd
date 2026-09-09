@@ -1,6 +1,6 @@
-# [Project name]
+# Pajoy Uniforms Operations
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Pajoy Uniforms' operations console for multi-branch inventory, retail and wholesale sales, school orders, payments, credit, and embroidery workflows.
 
 ## Run & Operate
 
@@ -9,7 +9,25 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
+- `$env:RESET_CONFIRMATION="RESET_PAJOY_BUSINESS"; pnpm reset:business` — transaction-safe business reset; preserves staff, authentication, roles, permissions, shops, schema, and migrations
 - Required env: `DATABASE_URL` — Postgres connection string
+
+### Local development
+
+For a local PostgreSQL 18 installation using the default development database:
+
+```powershell
+$env:DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres"
+$env:PAJOY_BOOTSTRAP_PASSWORD="use-a-strong-local-password"
+$env:PORT="3001"
+pnpm --filter @workspace/db push
+pnpm --filter @workspace/api-server build
+pnpm --filter @workspace/api-server start
+```
+
+The API does not seed business data. The first login creates only the `admin` and `cashier` users using the configured bootstrap password. Add real shops, branches, products, customers, and inventory through the production administration workflow.
+
+The reset command requires the exact confirmation value above and removes business records while preserving staff, authentication, shops, schema, and migrations.
 
 ## Stack
 
@@ -22,23 +40,33 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/pajoy-uniforms` — React/Vite operations console and route-based views.
+- `artifacts/api-server/src/routes/pajoy.ts` — API endpoints, seed data, and response mapping.
+- `lib/api-spec/openapi.yaml` — source of truth for Pajoy API contracts and generated client hooks.
+- `lib/db/src/schema/pajoy.ts` — Drizzle tables for branches, products, inventory, customers, orders, payments, and activity.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The frontend uses the generated OpenAPI React Query hooks so the dashboard and operational forms share a typed contract with the API.
+- Production uses the shared PostgreSQL database without automatic demo-data seeding.
+- Branch inventory is modeled independently from products so on-hand, reserved, and available quantities remain branch-specific.
+- Kenyan Shilling amounts are stored as database numerics and mapped to numbers at the API boundary for predictable UI calculations.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard overview with sales, credit, order, inventory, branch, and activity signals.
+- POS, product catalog, inventory, customer, order, payment, reports, and settings routes.
+- Create flows for products, customers, school/wholesale orders, and customer payments.
+- Workflows include school deposits, deferred balances, stock reservations, and embroidery-linked order status.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+No additional preferences recorded.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Regenerate client and Zod outputs after changing `lib/api-spec/openapi.yaml`.
+- The API never seeds business data automatically; provision real data explicitly.
 
 ## Pointers
 

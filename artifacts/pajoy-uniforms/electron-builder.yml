@@ -1,0 +1,29 @@
+appId: ke.pajoy.uniforms.pos
+productName: Pajoy Uniforms POS
+artifactName: Pajoy-Uniforms-POS-${version}-${os}-${arch}.${ext}
+extraMetadata:
+  main: artifacts/pajoy-uniforms/electron/main.cjs
+directories:
+  output: C:/Pajoy-Uniforms-POS-release
+files:
+  - artifacts/pajoy-uniforms/dist/public/**/*
+  - artifacts/pajoy-uniforms/electron/**/*
+extraResources:
+  - from: artifacts/api-server/dist
+    to: api-server
+    filter:
+      - index.mjs
+      - pino-*.mjs
+  - from: artifacts/api-server/migrations
+    to: migrations
+win:
+  target:
+    - nsis
+  icon: public/favicon.svg
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target: dmg
+linux:
+  target: AppImage

@@ -1,0 +1,14 @@
+# API server environment. Store the real values in the Windows service or VPS secret store.
+NODE_ENV=production
+PORT=3001
+DATABASE_URL=postgres://PRODUCTION_DB_USER:PRODUCTION_DB_PASSWORD@PRIVATE_DB_HOST:5432/pajoy_production
+BOOTSTRAP_ADMIN_USERNAME=admin
+BOOTSTRAP_ADMIN_PASSWORD=REPLACE_WITH_A_STRONG_UNIQUE_PASSWORD
+ALLOWED_ORIGINS=https://pos.example.com
+
+# POS build/runtime configuration. This is an API URL only; never put DATABASE_URL here.
+API_BASE_URL=https://api.example.com
+VITE_API_BASE_URL=https://api.example.com
+
+# Destructive reset tooling only; do not set in the normal API service environment.
+# RESET_CONFIRMATION=RESET_PAJOY_BUSINESS

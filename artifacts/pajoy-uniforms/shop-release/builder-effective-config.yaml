@@ -1,0 +1,24 @@
+directories:
+  output: artifacts/pajoy-uniforms/shop-release
+  buildResources: build
+appId: ke.pajoy.uniforms.pos
+productName: Pajoy Uniforms POS
+artifactName: Pajoy-Uniforms-POS-${version}-${os}-${arch}.${ext}
+extraMetadata:
+  main: electron/main.cjs
+files:
+  - filter:
+      - dist/public/**/*
+      - electron/**/*
+win:
+  target:
+    - nsis
+  icon: public/favicon.svg
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target: dmg
+linux:
+  target: AppImage
+electronVersion: 38.8.6

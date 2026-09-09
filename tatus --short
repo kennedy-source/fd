@@ -1,0 +1,39 @@
+warning: in the working copy of '.replit', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'artifacts/api-server/src/app.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'artifacts/api-server/src/routes/health.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'artifacts/api-server/src/routes/index.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'artifacts/mockup-sandbox/vite.config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/api-client-react/src/custom-fetch.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/api-client-react/src/generated/api.schemas.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/api-client-react/src/generated/api.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/api-spec/openapi.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/api-zod/src/generated/api.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/api-zod/src/generated/types/healthStatus.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/api-zod/src/generated/types/index.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/db/drizzle.config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/db/src/schema/index.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pnpm-lock.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pnpm-workspace.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'replit.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/package.json', LF will be replaced by CRLF the next time Git touches it
+ .replit                                           |    5 [32m+[m[31m-[m
+ artifacts/api-server/src/app.ts                   |   27 [32m+[m[31m-[m
+ artifacts/api-server/src/routes/health.ts         |   13 [32m+[m
+ artifacts/api-server/src/routes/index.ts          |    5 [32m+[m
+ artifacts/mockup-sandbox/vite.config.ts           |   16 [32m+[m[31m-[m
+ lib/api-client-react/src/custom-fetch.ts          |   23 [32m+[m[31m-[m
+ lib/api-client-react/src/generated/api.schemas.ts |  279 [32m++[m[31m-[m
+ lib/api-client-react/src/generated/api.ts         | 1257 [32m+++++++++++[m[31m-[m
+ lib/api-spec/openapi.yaml                         |  564 [32m++++++[m
+ lib/api-zod/src/generated/api.ts                  |  442 [32m++++[m[31m-[m
+ lib/api-zod/src/generated/types/healthStatus.ts   |    2 [32m+[m[31m-[m
+ lib/api-zod/src/generated/types/index.ts          |   25 [32m+[m[31m-[m
+ lib/db/drizzle.config.ts                          |    2 [32m+[m[31m-[m
+ lib/db/src/schema/index.ts                        |    2 [32m+[m[31m-[m
+ package.json                                      |   11 [32m+[m[31m-[m
+ pnpm-lock.yaml                                    | 2096 [32m++++++++++++++++++++[m[31m-[m
+ pnpm-workspace.yaml                               |    6 [32m+[m[31m-[m
+ replit.md                                         |   42 [32m+[m[31m-[m
+ scripts/package.json                              |    5 [32m+[m
+ 19 files changed, 4700 insertions(+), 122 deletions(-)

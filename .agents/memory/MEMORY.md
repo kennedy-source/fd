@@ -1,0 +1,1 @@
+- [OpenAPI/Zod compatibility](openapi-zod-compatibility.md) — generated integer schemas are incompatible with the workspace's current Zod helper surface.

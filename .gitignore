@@ -47,3 +47,7 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Electron build output
+artifacts/pajoy-uniforms/release/win-unpacked.tmp/
+artifacts/pajoy-uniforms/shop-release/win-unpacked.tmp/
