@@ -1,5 +1,6 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Archive, ArrowLeft, Bell, Building2, Check, ChevronRight, CircleUserRound, CreditCard, Database, FileCheck2, FileText, Globe2, HardDrive, KeyRound, LayoutGrid, Mail, Package, Palette, Plus, Save, Search, Settings2, ShieldCheck, ShoppingCart, Smartphone, Store, Tags, Trash2, Users, WalletCards, X } from 'lucide-react';
+import { useListBranches, useListCustomers } from '@workspace/api-client-react';
 
 type Section = { id: string; label: string; group: string; icon: typeof Settings2; description: string };
 type SettingsState = { businessName: string; businessType: string; phone: string; email: string; website: string; address: string; city: string; country: string; taxNumber: string; receiptFooter: string; taxRate: string; taxName: string; currency: string; timezone: string; dateFormat: string; theme: string; defaultLocation: string; reorderLevel: string; lowStockAlerts: boolean; preventNegative: boolean; trackSize: boolean; trackLocation: boolean; requireAdjustmentReason: boolean; allowDiscounts: boolean; maxCashierDiscount: string; managerApprovalRefunds: boolean; managerApprovalDiscounts: boolean; autoReceipt: boolean; requireCustomer: boolean; allowPriceOverride: boolean; invoiceFormat: string; sessionTimeout: string; managerPin: boolean; paymentTimeout: string };
@@ -50,4 +51,54 @@ function FormSection({ id, settings, update, onSave, saved, listItems, setListIt
   return common(<div className="grid gap-3 sm:grid-cols-2"><Toggle label="Enable feature" detail="This setting is ready for server-backed configuration." value={true} onChange={() => undefined} /><Field label="Configuration value" value="Configured" onChange={() => undefined} /></div>);
 }
 
-export default function SettingsModule() { const [active, setActive] = useState('overview'); const [search, setSearch] = useState(''); const [settings, setSettings] = useState<SettingsState>(readSettings); const [saved, setSaved] = useState(false); const [listItems, setListItemsState] = useState<Record<string, string[]>>({ categories: ['Shirts', 'Trousers', 'Sweaters', 'Sportswear'], sizes: ['4', '6', '8', '10', '12', '14', '16', '18', 'XS', 'S', 'M', 'L', 'XL', 'XXL'], units: ['Piece', 'Pair', 'Set', 'Dozen'], branches: ['Main Warehouse', 'Westlands Branch', 'Nairobi Branch', 'School Outlet'], schools: ['Greenfield Academy', 'Westlands Academy', 'Nairobi Academy', "St. Mary's School"], suppliers: ['ABC Uniform Suppliers', 'Nairobi Textiles', 'Schoolwear Kenya'], users: ['Jane Kamau - Cashier', 'David Otieno - Inventory', 'Sarah Wanjiku - Manager'] }); const filteredSections = useMemo(() => sections.filter((section) => !search || `${section.label} ${section.group}`.toLowerCase().includes(search.toLowerCase())), [search]); const update = (key: keyof SettingsState, value: string | boolean) => setSettings((current) => ({ ...current, [key]: value })); const save = () => { localStorage.setItem(storageKey, JSON.stringify(settings)); setSaved(true); window.setTimeout(() => setSaved(false), 1800); }; const setListItems = (key: string, value: string[]) => setListItemsState((current) => ({ ...current, [key]: value })); const activeSection = sections.find((section) => section.id === active); return <div><div className="mb-7"><div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.2em] text-[hsl(var(--secondary))]"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))]" />Control room</div><h1 className="font-display text-3xl font-bold tracking-[-.045em]">Settings</h1><p className="mt-1.5 max-w-xl text-sm text-[hsl(var(--muted-foreground))]">Manage your business, POS, inventory and system configuration.</p></div><div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]"><Panel className="h-fit overflow-hidden"><div className="border-b border-[hsl(var(--border))] p-4"><div className="relative"><Search size={14} className="absolute left-3 top-3 text-[hsl(var(--muted-foreground))]" /><input aria-label="Search settings" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search settings..." className="h-10 w-full rounded-lg border bg-[hsl(var(--background))] pl-9 pr-3 text-xs outline-none focus:border-[hsl(var(--secondary))]" /></div></div><div className="max-h-[70vh] overflow-y-auto p-2"><button onClick={() => setActive('overview')} className={`mb-2 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-bold ${active === 'overview' ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]' : 'hover:bg-[hsl(var(--muted))]'}`}><LayoutGrid size={15} />Overview</button>{groups.map((group) => { const visible = group.items.filter(([id, label]) => filteredSections.some((section) => section.id === id || section.label === label)); if (!visible.length) return null; const Icon = group.icon; return <div key={group.name} className="mb-3"><div className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-[.13em] text-[hsl(var(--muted-foreground))]"><Icon size={13} />{group.name}</div>{visible.map(([id, label]) => <button key={id} onClick={() => setActive(id)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold ${active === id ? 'bg-[hsl(var(--secondary)/.12)] text-[hsl(var(--secondary))]' : 'hover:bg-[hsl(var(--muted))]'}`}><span>{label}</span>{active === id && <ChevronRight size={13} />}</button>)}</div>; })}</div></Panel><main className="min-w-0">{active === 'overview' ? <Overview onSelect={setActive} /> : activeSection ? <FormSection id={active} settings={settings} update={update} onSave={save} saved={saved} listItems={listItems} setListItems={setListItems} /> : null}<div className="mt-5 flex items-center gap-2 text-[10px] text-[hsl(var(--muted-foreground))]"><ShieldCheck size={13} />Sensitive settings are intended for authorized managers and administrators. Backend authorization remains required for production enforcement.</div></main></div></div>; }
+export default function SettingsModule() { 
+  const [active, setActive] = useState('overview'); 
+  const [search, setSearch] = useState(''); 
+  const [settings, setSettings] = useState<SettingsState>(readSettings); 
+  const [saved, setSaved] = useState(false);
+  
+  // Fetch real data from API
+  const { data: branches = [] } = useListBranches({ query: { queryKey: ['branches'] } });
+  const { data: customers = [] } = useListCustomers({ query: { queryKey: ['customers'] } });
+  
+  // Extract schools from customers (customers with type="School")
+  const schools = useMemo(() => 
+    customers.filter(c => c.type === 'School').map(c => c.name),
+    [customers]
+  );
+  
+  // Extract branch names from API
+  const branchNames = useMemo(() => 
+    branches.map(b => b.name),
+    [branches]
+  );
+  
+  const [listItems, setListItemsState] = useState<Record<string, string[]>>({ 
+    categories: ['Shirts', 'Trousers', 'Sweaters', 'Sportswear'], 
+    sizes: ['4', '6', '8', '10', '12', '14', '16', '18', 'XS', 'S', 'M', 'L', 'XL', 'XXL'], 
+    units: ['Piece', 'Pair', 'Set', 'Dozen'], 
+    branches: branchNames.length > 0 ? branchNames : ['Main Warehouse', 'Westlands Branch', 'Nairobi Branch', 'School Outlet'], 
+    schools: schools.length > 0 ? schools : ['Greenfield Academy', 'Westlands Academy', 'Nairobi Academy', "St. Mary's School"], 
+    suppliers: ['ABC Uniform Suppliers', 'Nairobi Textiles', 'Schoolwear Kenya'], 
+    users: ['Jane Kamau - Cashier', 'David Otieno - Inventory', 'Sarah Wanjiku - Manager'] 
+  });
+  
+  // Update list items when API data changes
+  useEffect(() => {
+    if (branchNames.length > 0) {
+      setListItemsState(prev => ({ ...prev, branches: branchNames }));
+    }
+  }, [branchNames]);
+  
+  useEffect(() => {
+    if (schools.length > 0) {
+      setListItemsState(prev => ({ ...prev, schools }));
+    }
+  }, [schools]);
+  
+  const filteredSections = useMemo(() => sections.filter((section) => !search || `${section.label} ${section.group}`.toLowerCase().includes(search.toLowerCase())), [search]); 
+  const update = (key: keyof SettingsState, value: string | boolean) => setSettings((current) => ({ ...current, [key]: value })); 
+  const save = () => { localStorage.setItem(storageKey, JSON.stringify(settings)); setSaved(true); window.setTimeout(() => setSaved(false), 1800); }; 
+  const setListItems = (key: string, value: string[]) => setListItemsState((current) => ({ ...current, [key]: value })); 
+  const activeSection = sections.find((section) => section.id === active); 
+  return <div><div className="mb-7"><div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.2em] text-[hsl(var(--secondary))]"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))]" />Control room</div><h1 className="font-display text-3xl font-bold tracking-[-.045em]">Settings</h1><p className="mt-1.5 max-w-xl text-sm text-[hsl(var(--muted-foreground))]">Manage your business, POS, inventory and system configuration.</p></div><div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]"><Panel className="h-fit overflow-hidden"><div className="border-b border-[hsl(var(--border))] p-4"><div className="relative"><Search size={14} className="absolute left-3 top-3 text-[hsl(var(--muted-foreground))]" /><input aria-label="Search settings" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search settings..." className="h-10 w-full rounded-lg border bg-[hsl(var(--background))] pl-9 pr-3 text-xs outline-none focus:border-[hsl(var(--secondary))]" /></div></div><div className="max-h-[70vh] overflow-y-auto p-2"><button onClick={() => setActive('overview')} className={`mb-2 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs font-bold ${active === 'overview' ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]' : 'hover:bg-[hsl(var(--muted))]'}`}><LayoutGrid size={15} />Overview</button>{groups.map((group) => { const visible = group.items.filter(([id, label]) => filteredSections.some((section) => section.id === id || section.label === label)); if (!visible.length) return null; const Icon = group.icon; return <div key={group.name} className="mb-3"><div className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-[.13em] text-[hsl(var(--muted-foreground))]"><Icon size={13} />{group.name}</div>{visible.map(([id, label]) => <button key={id} onClick={() => setActive(id)} className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs font-semibold ${active === id ? 'bg-[hsl(var(--secondary)/.12)] text-[hsl(var(--secondary))]' : 'hover:bg-[hsl(var(--muted))]'}`}><span>{label}</span>{active === id && <ChevronRight size={13} />}</button>)}</div>; })}</div></Panel><main className="min-w-0">{active === 'overview' ? <Overview onSelect={setActive} /> : activeSection ? <FormSection id={active} settings={settings} update={update} onSave={save} saved={saved} listItems={listItems} setListItems={setListItems} /> : null}<div className="mt-5 flex items-center gap-2 text-[10px] text-[hsl(var(--muted-foreground))]"><ShieldCheck size={13} />Sensitive settings are intended for authorized managers and administrators. Backend authorization remains required for production enforcement.</div></main></div></div>; }

@@ -3,16 +3,28 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { rm } from "node:fs/promises";
+import { rm, cp } from "node:fs/promises";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
+const workspaceRoot = path.resolve(artifactDir, "../..");
 
 async function buildAll() {
   const distDir = path.resolve(artifactDir, "dist");
   await rm(distDir, { recursive: true, force: true });
+
+  // Copy workspace packages into api-server source tree for bundling
+  const dbSrcDir = path.resolve(workspaceRoot, 'lib/db/src');
+  const apiZodSrcDir = path.resolve(workspaceRoot, 'lib/api-zod/src');
+  const localDbDir = path.resolve(artifactDir, 'src/lib/db');
+  const localApiZodDir = path.resolve(artifactDir, 'src/lib/api-zod');
+  
+  await rm(localDbDir, { recursive: true, force: true });
+  await rm(localApiZodDir, { recursive: true, force: true });
+  await cp(dbSrcDir, localDbDir, { recursive: true });
+  await cp(apiZodSrcDir, localApiZodDir, { recursive: true });
 
   await esbuild({
     entryPoints: [path.resolve(artifactDir, "src/index.ts")],
@@ -22,6 +34,12 @@ async function buildAll() {
     outdir: distDir,
     outExtension: { ".js": ".mjs" },
     logLevel: "info",
+    // Resolve workspace packages to their local copies
+    resolveExtensions: ['.ts', '.js', '.mjs', '.json'],
+    alias: {
+      '@workspace/db': path.resolve(localDbDir, 'index.ts'),
+      '@workspace/api-zod': path.resolve(localApiZodDir, 'index.ts'),
+    },
     // Some packages may not be bundleable, so we externalize them, we can add more here as needed.
     // Some of the packages below may not be imported or installed, but we're adding them in case they are in the future.
     // Examples of unbundleable packages:
@@ -100,8 +118,14 @@ async function buildAll() {
       "puppeteer",
       "puppeteer-core",
       "electron",
+      // Externalize runtime dependencies
+      "pg",
+      "zod",
+      "zod/*",
+      "drizzle-zod",
+      "drizzle-orm",
     ],
-    sourcemap: "linked",
+    sourcemap: false,
     plugins: [
       // pino relies on workers to handle logging, instead of externalizing it we use a plugin to handle it
       esbuildPluginPino({ transports: ["pino-pretty"] })

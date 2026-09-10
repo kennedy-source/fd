@@ -1860,6 +1860,7 @@ function UniformVariationModal({ onClose }: { onClose: () => void }) {
 
 function DashboardPage() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const dashboard = useGetDashboard({
     query: { queryKey: getGetDashboardQueryKey() },
   });
@@ -1869,12 +1870,31 @@ function DashboardPage() {
   const branches = useListBranches({
     query: { queryKey: getListBranchesQueryKey() },
   });
+  
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+  
+  const getCurrentDate = () => {
+    return new Date().toLocaleDateString("en-KE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  };
+  
+  const userName = user?.username || "User";
+  
   if (dashboard.isLoading)
     return (
       <>
         <PageIntro
-          eyebrow="Tuesday, 18 June 2024"
-          title="Good morning, Amina"
+          eyebrow={`${getCurrentDate()} · Nairobi`}
+          title={`${getGreeting()}, ${userName}`}
           detail="A clear view of today's trade, stock, and work waiting in the wings."
         />
         <LoadingState />
@@ -1887,8 +1907,8 @@ function DashboardPage() {
   return (
     <div className="animate-fade">
       <PageIntro
-        eyebrow="Tuesday, 18 June 2024 · Nairobi"
-        title="Good morning, Amina"
+        eyebrow={`${getCurrentDate()} · Nairobi`}
+        title={`${getGreeting()}, ${userName}`}
         detail="A clear view of today's trade, stock, and work waiting in the wings."
         action={
           <Button

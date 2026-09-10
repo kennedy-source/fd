@@ -1,14 +1,14 @@
-import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Barcode, CheckCircle2, CreditCard, Pause, Plus, Printer, Search, Shirt, Trash2, UserRound, X } from 'lucide-react';
 import { getGetDashboardQueryKey, getListActivityQueryKey, getListBranchesQueryKey, getListInventoryQueryKey, getListOrdersQueryKey, getListProductsQueryKey, useCreateOrder, useListBranches, useListProducts } from '@workspace/api-client-react';
+import { authFetch } from '@/auth';
 const money = (value = 0) => `KSh ${Number(value).toLocaleString('en-KE', { maximumFractionDigits: 0 })}`;
 
 type Product = { id: string; name: string; sku: string; school?: string | null; category: string; colors?: string[]; sizes?: string[]; retailPrice: number; wholesalePrice: number; branchStock?: { branchId: string; branchName: string; onHand: number; reserved: number; available: number }[] };
 type CartLine = { id: string; product: Product; size: string; color: string; quantity: number; price: number };
 type HeldSale = { id: string; customer: string; student: string; school: string; lines: CartLine[]; total: number; time: string };
 const methods = ['CASH', 'M-PESA', 'CARD', 'OTHER'];
-const categories = ['All', 'Shirts', 'Trousers', 'Skirts', 'Sweaters', 'Ties', 'Socks', 'Sportswear', 'Shoes', 'Accessories', 'Other'];
 const categoryMatch = (product: Product, category: string) => category === 'All' || `${product.category} ${product.name}`.toLowerCase().includes(category.toLowerCase().replace('sweaters', 'sweater').replace('shirts', 'shirt').replace('trousers', 'trouser').replace('skirts', 'skirt'));
 
 export default function POSCashier() {
@@ -35,8 +35,19 @@ export default function POSCashier() {
   const [receivedInput, setReceivedInput] = useState('');
   const [reference, setReference] = useState('');
   const [completed, setCompleted] = useState<{ receipt: string; total: number; method: string } | null>(null);
+  const [categories, setCategories] = useState<string[]>(['All']);
   const transactionKey = useRef<string | null>(null);
   const queryClient = useQueryClient();
+  
+  // Fetch categories from API
+  useEffect(() => {
+    authFetch('/api/categories').then(res => res.ok ? res.json() : []).then(data => {
+      if (Array.isArray(data)) {
+        setCategories(['All', ...data.map((c: any) => c.name)]);
+      }
+    }).catch(() => {});
+  }, []);
+  
   const rows = (products.data ?? []) as Product[];
   const schoolOptions = ['All Schools', ...Array.from(new Set(rows.map((product) => product.school).filter(Boolean) as string[]))];
   const filtered = rows.filter((product) => (school === 'All Schools' || product.school === school) && categoryMatch(product, category) && `${product.name} ${product.sku} ${product.school ?? ''}`.toLowerCase().includes(search.toLowerCase()));
