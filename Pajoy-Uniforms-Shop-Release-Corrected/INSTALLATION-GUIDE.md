@@ -71,6 +71,8 @@
 2. The API will start on `http://localhost:3001`
 3. Keep this window open - the POS app needs this running
 
+**Note:** The API server automatically loads environment variables from the `.env` file.
+
 **Optional: Run as a Windows Service**
 To run the API server in the background, use a service manager like `pm2`:
 ```powershell

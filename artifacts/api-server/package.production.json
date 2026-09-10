@@ -4,8 +4,8 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "start": "node --enable-source-maps ./dist/index.mjs",
-    "production:init": "node ./production-init.mjs"
+    "start": "node -r dotenv/config --enable-source-maps ./dist/index.mjs",
+    "production:init": "node -r dotenv/config ./production-init.mjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
