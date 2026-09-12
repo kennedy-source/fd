@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,5 +24,16 @@ await cp(path.resolve(workspaceRoot, "PRODUCTION-ENV.example"), path.resolve(tar
 
 const manifest = await readFile(path.resolve(apiDir, "package.production.json"), "utf8");
 await writeFile(path.resolve(targetDir, "package.json"), manifest);
+
+const npm = spawnSync(process.platform === "win32" ? "npm.cmd" : "npm", ["install", "--package-lock-only", "--ignore-scripts", "--no-audit", "--no-fund"], { cwd: targetDir, stdio: "inherit" });
+if (npm.status !== 0) {
+  console.warn("Could not refresh package-lock.json; the committed lockfile may be stale.");
+}
+
+const entry = path.resolve(targetDir, "dist/index.mjs");
+await access(entry).catch(() => {
+  console.error(`Packaging failed: ${entry} was not produced.`);
+  process.exit(1);
+});
 
 console.info(`Shop API payload written to ${targetDir}`);
