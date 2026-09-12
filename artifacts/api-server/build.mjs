@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { rm, cp } from "node:fs/promises";
+import { readdir, readFile, rm, cp, writeFile } from "node:fs/promises";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
@@ -142,6 +142,30 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+
+  await relocatePinoWorkerPaths(distDir);
+}
+
+// esbuild-plugin-pino hardcodes the build machine's absolute outdir into the bundle to
+// locate its transport workers. Resolve them against the bundle's own directory so the
+// output stays portable once it is copied into a release folder.
+async function relocatePinoWorkerPaths(distDir) {
+  const hardcoded = `const outputDir = "${distDir.replace(/\\/g, "\\\\")}";`;
+  const portable = "const outputDir = globalThis.__dirname;";
+  let patched = 0;
+
+  for (const entry of await readdir(distDir)) {
+    if (!entry.endsWith(".mjs")) continue;
+    const file = path.resolve(distDir, entry);
+    const contents = await readFile(file, "utf8");
+    if (!contents.includes(hardcoded)) continue;
+    await writeFile(file, contents.replaceAll(hardcoded, portable));
+    patched += 1;
+  }
+
+  if (patched === 0) {
+    throw new Error("Expected esbuild-plugin-pino to emit an absolute output directory to rewrite; the bundle would not be portable.");
+  }
 }
 
 buildAll().catch((err) => {
