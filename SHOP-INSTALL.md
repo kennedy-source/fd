@@ -34,3 +34,16 @@ pnpm run desktop:build
 ```
 
 The Windows installer is written to `artifacts/pajoy-uniforms/shop-release`.
+
+## Build the shop API payload
+
+The release folder ships a compiled API bundle, not TypeScript sources. Regenerate it from the repository root after any API change:
+
+```powershell
+pnpm install
+pnpm run shop:api:package
+```
+
+This bundles `artifacts/api-server` with esbuild and refreshes `Pajoy-Uniforms-Shop-Release-Corrected/api-server` with `dist/`, `migrations/`, `production-init.mjs`, `.env.example`, and the production `package.json`. Set `PAJOY_SHOP_RELEASE` to write to a different release folder.
+
+On the shop computer, that folder runs with plain npm: `npm install`, `npm run production:init`, `npm start`.

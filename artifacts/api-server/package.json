@@ -1,9 +1,10 @@
 {
-  "name": "pajoy-api-server",
+  "name": "@workspace/api-server",
   "version": "1.0.0",
-  "private": false,
+  "private": true,
   "type": "module",
   "scripts": {
+    "build": "node ./build.mjs",
     "start": "node -r dotenv/config --enable-source-maps ./dist/index.mjs",
     "production:init": "node -r dotenv/config ./production-init.mjs"
   },
